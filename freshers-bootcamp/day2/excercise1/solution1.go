@@ -5,25 +5,27 @@ import (
 	"sync"
 )
 
-var frequency = make(map[byte]int)
-func calulateFrequencyInString(c byte, s string) int{
+func calulateFrequencyInString(inputByte byte, inputString string,frequencyChannel chan int)  {
 	sum:=0
-	for i:=0;i<len(s);i++{
-		if s[i]==c {
+	for i:=0;i<len(inputString);i++{
+		if inputString[i]==inputByte {
 			sum++
 		}
 	}
-	return sum
+	frequencyChannel <-sum
 }
 
-func calculateFrequency(c byte,setOfStrings []string ,wg *sync.WaitGroup) {
+func calculateFrequency(inputByte byte,setOfStrings []string ,wg *sync.WaitGroup) {
 	defer wg.Done()
 	lengthOfStringSet := len(setOfStrings)
 	sum:=0
 	for i:=0;i<lengthOfStringSet;i++{
-		sum += calulateFrequencyInString(c,setOfStrings[i])
+		frequencyChannel := make(chan int,1)
+		go calulateFrequencyInString(inputByte,setOfStrings[i],frequencyChannel)
+		value := <-frequencyChannel
+		sum += value
 	}
-	fmt.Printf("%c : %d\n",c,sum)
+	fmt.Printf("%c : %d\n",inputByte,sum)
 }
 func main() {
 
@@ -33,16 +35,17 @@ func main() {
 	setOfStrings := []string{}
 
 	var wg sync.WaitGroup
-	wg.Add(26)
+
 
 	for i:=0; i<numOfStrings;i++{
 		var s string
 		fmt.Scanf("%s",&s)
 		setOfStrings = append(setOfStrings,s)
 	}
-	var c byte
-	for c = 'a';c<='z';c++{
-		go calculateFrequency(c,setOfStrings,&wg)
+
+	for c := 'a';c<='z';c++{
+		wg.Add(1)
+		go calculateFrequency(byte(c),setOfStrings,&wg)
 	}
 	wg.Wait()
 

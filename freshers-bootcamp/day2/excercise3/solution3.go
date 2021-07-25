@@ -6,10 +6,9 @@ import (
 )
 
 var balance  uint64 = 500
-
+var mutex = &sync.Mutex{}
 func withdraw(amount uint64,wg *sync.WaitGroup) {
 	defer wg.Done()
-	var mutex = &sync.Mutex{}
 	mutex.Lock()
 	if amount<=balance {
 		balance -= amount
@@ -21,7 +20,6 @@ func withdraw(amount uint64,wg *sync.WaitGroup) {
 }
 func deposit(amount uint64,wg *sync.WaitGroup) {
 	defer wg.Done()
-	var mutex = &sync.Mutex{}
 	mutex.Lock()
 	balance+= amount
 	mutex.Unlock()
